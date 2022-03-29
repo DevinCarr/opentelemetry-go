@@ -15,9 +15,11 @@
 package attribute_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/require"
 
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -103,4 +105,31 @@ func TestValue(t *testing.T) {
 			t.Errorf("+got, -want: %s", diff)
 		}
 	}
+}
+
+func TestMarshalJSONValue(t *testing.T) {
+	k := attribute.Key("test")
+	var kvs interface{} = [2]attribute.Value{
+		k.String("A").Value,
+		k.Int64(1).Value,
+	}
+
+	data, err := json.Marshal(kvs)
+	require.NoError(t, err)
+	require.Equal(t,
+		`[{"Type":"STRING","Value":"A"},{"Type":"INT64","Value":1}]`,
+		string(data))
+}
+
+func TestUnmarshalJSONValue(t *testing.T) {
+	jsonString := `{"Type":"STRING","Value":"A"}`
+	var value attribute.Value
+	err := json.Unmarshal([]byte(jsonString), &value)
+	require.NoError(t, err)
+	require.Equal(t,
+		"STRING",
+		value.Type().String())
+	require.Equal(t,
+		"A",
+		value.AsString())
 }

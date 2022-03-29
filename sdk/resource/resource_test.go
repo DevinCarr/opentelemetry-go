@@ -314,6 +314,18 @@ func TestMarshalJSON(t *testing.T) {
 		string(data))
 }
 
+func TestUnmarshalJSON(t *testing.T) {
+	jsonString := `[{"Key":"A","Value":{"Type":"STRING","Value":"Hello"}}]`
+	var r resource.Resource
+	err := json.Unmarshal([]byte(jsonString), &r)
+	require.NoError(t, err)
+	attrs := r.Attributes()
+	require.Len(t, attrs, 1)
+	attr := attrs[0]
+	require.Equal(t, attribute.Key("A"), attr.Key)
+	require.Equal(t, attribute.StringValue("Hello"), attr.Value)
+}
+
 func TestNew(t *testing.T) {
 	tc := []struct {
 		name      string

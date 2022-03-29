@@ -343,6 +343,24 @@ func TestTraceStateMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestTraceStateUnmarshalJSON(t *testing.T) {
+	for _, tc := range testcases {
+		if tc.err != nil {
+			// Only test non-zero value TraceState.
+			continue
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			encoded, err := json.Marshal(tc.in)
+			require.NoError(t, err)
+			var actual TraceState
+			err = json.Unmarshal([]byte(encoded), &actual)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.tracestate, actual)
+		})
+	}
+}
+
 func TestTraceStateGet(t *testing.T) {
 	testCases := []struct {
 		name     string

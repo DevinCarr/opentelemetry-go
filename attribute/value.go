@@ -259,6 +259,56 @@ func (v Value) Emit() string {
 	}
 }
 
+// Emit returns a string representation of Value's data.
+func unmarshalType(vtype string) Type {
+	switch vtype {
+	case "BOOLSLICE":
+		return BOOLSLICE
+	case "BOOL":
+		return BOOL
+	case "INT64SLICE":
+		return INT64SLICE
+	case "INT64":
+		return INT64
+	case "FLOAT64SLICE":
+		return FLOAT64SLICE
+	case "FLOAT64":
+		return FLOAT64
+	case "STRINGSLICE":
+		return STRINGSLICE
+	case "STRING":
+		return STRING
+	case "INVALID":
+		return INVALID
+	default:
+		return INVALID
+	}
+}
+
+// Emit returns a string representation of Value's data.
+func fromInterface(vtype Type, value interface{}) Value {
+	switch vtype {
+	case BOOLSLICE:
+		return BoolSliceValue(value.([]bool))
+	case BOOL:
+		return BoolValue(value.(bool))
+	case INT64SLICE:
+		return IntSliceValue(value.([]int)) //fmt.Sprint(*(v.slice.(*[]int64)))
+	case INT64:
+		return IntValue(value.(int)) //strconv.FormatInt(v.AsInt64(), 10)
+	case FLOAT64SLICE:
+		return Float64SliceValue(value.([]float64)) //fmt.Sprint(*(v.slice.(*[]float64)))
+	case FLOAT64:
+		return Float64Value(value.(float64)) //fmt.Sprint(v.AsFloat64())
+	case STRINGSLICE:
+		return StringSliceValue(value.([]string)) //fmt.Sprint(*(v.slice.(*[]string)))
+	case STRING:
+		return StringValue(value.(string))
+	default:
+		return Value{vtype: vtype}
+	}
+}
+
 // MarshalJSON returns the JSON encoding of the Value.
 func (v Value) MarshalJSON() ([]byte, error) {
 	var jsonVal struct {
@@ -268,4 +318,20 @@ func (v Value) MarshalJSON() ([]byte, error) {
 	jsonVal.Type = v.Type().String()
 	jsonVal.Value = v.AsInterface()
 	return json.Marshal(jsonVal)
+}
+
+// MarshalJSON returns the JSON encoding of the Value.
+func (v *Value) UnmarshalJSON(data []byte) error {
+	var jsonVal struct {
+		Type  string
+		Value interface{}
+	}
+	err := json.Unmarshal(data, &jsonVal)
+	if err != nil {
+		return err
+	}
+	vtype := unmarshalType(jsonVal.Type)
+	value := fromInterface(vtype, jsonVal.Value)
+	*v = value
+	return nil
 }

@@ -16,6 +16,7 @@ package resource // import "go.opentelemetry.io/otel/sdk/resource"
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -261,6 +262,16 @@ func (r *Resource) MarshalJSON() ([]byte, error) {
 		r = Empty()
 	}
 	return r.attrs.MarshalJSON()
+}
+
+func (r *Resource) UnmarshalJSON(data []byte) error {
+	var attrs []attribute.KeyValue
+	err := json.Unmarshal(data, &attrs)
+	if err != nil {
+		return err
+	}
+	*r = *NewSchemaless(attrs...)
+	return nil
 }
 
 // Len returns the number of unique key-values in this Resource.

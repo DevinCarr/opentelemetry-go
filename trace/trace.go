@@ -63,6 +63,21 @@ func (t TraceID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.String())
 }
 
+// MarshalJSON implements a custom marshal function to encode TraceID
+// as a hex string.
+func (t *TraceID) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	*t, err = TraceIDFromHex(s)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // String returns the hex string representation form of a TraceID
 func (t TraceID) String() string {
 	return hex.EncodeToString(t[:])
@@ -84,6 +99,21 @@ func (s SpanID) IsValid() bool {
 // as a hex string.
 func (s SpanID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
+}
+
+// MarshalJSON implements a custom marshal function to encode SpanID
+// as a hex string.
+func (s *SpanID) UnmarshalJSON(data []byte) error {
+	var st string
+	err := json.Unmarshal(data, &st)
+	if err != nil {
+		return err
+	}
+	*s, err = SpanIDFromHex(st)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // String returns the hex string representation form of a SpanID
@@ -172,6 +202,22 @@ func (tf TraceFlags) WithSampled(sampled bool) TraceFlags {
 // as a hex string.
 func (tf TraceFlags) MarshalJSON() ([]byte, error) {
 	return json.Marshal(tf.String())
+}
+
+// MarshalJSON implements a custom marshal function to encode TraceFlags
+// as a hex string.
+func (tf *TraceFlags) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	ds, err := hex.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	*tf = TraceFlags(ds[0])
+	return nil
 }
 
 // String returns the hex string representation form of TraceFlags
@@ -331,6 +377,21 @@ func (sc SpanContext) MarshalJSON() ([]byte, error) {
 		TraceState: sc.traceState,
 		Remote:     sc.remote,
 	})
+}
+
+// MarshalJSON implements a custom marshal function to encode a SpanContext.
+func (sc *SpanContext) UnmarshalJSON(data []byte) error {
+	var scc SpanContextConfig
+	err := json.Unmarshal(data, &scc)
+	if err != nil {
+		return err
+	}
+	sc.traceID = scc.TraceID
+	sc.spanID = scc.SpanID
+	sc.traceFlags = scc.TraceFlags
+	sc.traceState = scc.TraceState
+	sc.remote = scc.Remote
+	return nil
 }
 
 // Span is the individual component of a trace. It represents a single named

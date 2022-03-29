@@ -138,6 +138,18 @@ func (ts TraceState) MarshalJSON() ([]byte, error) {
 	return json.Marshal(ts.String())
 }
 
+// UnmarshalJSON marshals the TraceState into JSON.
+func (ts *TraceState) UnmarshalJSON(data []byte) error {
+	var decodedString string
+	err := json.Unmarshal(data, &decodedString)
+	traceState, err := ParseTraceState(decodedString)
+	if err != nil {
+		return err
+	}
+	*ts = traceState
+	return nil
+}
+
 // String encodes the TraceState into a string compliant with the W3C
 // Trace Context specification. The returned string will be invalid if the
 // TraceState contains any invalid members.
